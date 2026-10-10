@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marshmallow math - gelatin converter, pan fill, cut yield</title>
+<style>
+  :root { --ink:#2a1220; --accent:#c73e7e; --paper:#fdf8fa; --card:#ffffff; --line:#f0dbe6; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: Georgia, 'Times New Roman', serif; background:var(--paper); color:var(--ink); }
+  header { padding:2rem 1.25rem 1rem; max-width:960px; margin:0 auto; }
+  h1 { font-size:1.9rem; margin:0 0 .35rem; }
+  header p { margin:.25rem 0; color:#5c2a45; max-width:46rem; line-height:1.45; }
+  .norms { font-size:.9rem; color:#67304f; margin-top:.6rem; }
+  main { max-width:960px; margin:0 auto; padding:0 1.25rem 3rem; display:grid; gap:1.25rem; }
+  @media (min-width:820px){ main { grid-template-columns:1fr 1fr 1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:1.1rem 1.1rem 1.25rem; }
+  .card h2 { font-size:1.15rem; margin:.1rem 0 .5rem; }
+  .card p.desc { font-size:.9rem; color:#67304f; margin:.2rem 0 .8rem; line-height:1.4; }
+  label { display:block; font-size:.85rem; margin:.55rem 0 .15rem; color:#52203c; }
+  input, select { width:100%; padding:.45rem .5rem; font-size:1rem; border:1px solid var(--line); border-radius:6px; font-family:inherit; background:#fff; }
+  button { margin-top:.8rem; width:100%; padding:.55rem; font-size:1rem; font-family:inherit; background:var(--accent); color:#fff; border:0; border-radius:6px; cursor:pointer; }
+  button:hover { background:#a83268; }
+  .out { margin-top:.9rem; font-size:.95rem; line-height:1.5; min-height:3.2rem; }
+  .err { color:#a02323; }
+  footer { max-width:960px; margin:0 auto; padding:0 1.25rem 2.5rem; font-size:.85rem; color:#a87d94; }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Marshmallow math</h1>
+  <p>Convert the gelatin, size the batch to your pan, count the pieces. Exact arithmetic, every borrowed number labeled.</p>
+  <p class="norms">Labeled norms: envelope 7 g; sheets bronze 3.3 / silver 2.5 / gold 2.0 / platinum 1.7 g; slab density about 0.5 g per ml; dusting 2 g per piece, 50/50. Bloom strengths vary by brand.</p>
+</header>
+<main>
+  <section class="card" id="gel">
+    <h2>Gelatin converter</h2>
+    <p class="desc">Powder grams become envelopes and sheets, with labeled sheet weights.</p>
+    <label for="g-powder">Powder gelatin (g)</label>
+    <input id="g-powder" type="number" step="1" min="0" value="21">
+    <label for="g-type">Sheet type</label>
+    <select id="g-type">
+      <option value="bronze">Bronze (3.3 g)</option>
+      <option value="silver" selected>Silver (2.5 g)</option>
+      <option value="gold">Gold (2.0 g)</option>
+      <option value="platinum">Platinum (1.7 g)</option>
+    </select>
+    <button id="g-go">Convert the gelatin</button>
+    <div class="out" id="g-out"></div>
+  </section>
+
+  <section class="card" id="pan">
+    <h2>Pan fill</h2>
+    <p class="desc">Pan dimensions and slab height become the batch and its ingredient split.</p>
+    <label for="p-w">Pan width (cm)</label>
+    <input id="p-w" type="number" step="0.5" min="0" value="23">
+    <label for="p-l">Pan length (cm)</label>
+    <input id="p-l" type="number" step="0.5" min="0" value="33">
+    <label for="p-h">Slab height (cm)</label>
+    <input id="p-h" type="number" step="0.5" min="0" value="2.5">
+    <button id="p-go">Size the batch</button>
+    <div class="out" id="p-out"></div>
+  </section>
+
+  <section class="card" id="cut">
+    <h2>Cut yield</h2>
+    <p class="desc">Pan and piece size become the grid, the count and the dusting mix.</p>
+    <label for="c-w">Pan width (cm)</label>
+    <input id="c-w" type="number" step="0.5" min="0" value="23">
+    <label for="c-l">Pan length (cm)</label>
+    <input id="c-l" type="number" step="0.5" min="0" value="33">
+    <label for="c-piece">Piece size (cm)</label>
+    <input id="c-piece" type="number" step="0.5" min="0" value="5">
+    <button id="c-go">Count the pieces</button>
+    <div class="out" id="c-out"></div>
+  </section>
+</main>
+<footer>Built by the app factory. <a href="index.html">About</a> &middot; <a href="https://github.com/iLanis-agent/marshmallowmath">Source</a></footer>
+<script src="engine.js"></script>
+<script>
+function num(id){ return parseFloat(document.getElementById(id).value); }
+function show(id, r, render){
+  var el = document.getElementById(id);
+  if (r.error) { el.textContent = r.error; el.classList.add('err'); }
+  else { el.textContent = render(r); el.classList.remove('err'); }
+}
+document.getElementById('g-go').addEventListener('click', function(){
+  show('g-out', MarshmallowMath.gelatinConvert(num('g-powder'), document.getElementById('g-type').value), MarshmallowMath.renderGelatin);
+});
+document.getElementById('p-go').addEventListener('click', function(){
+  show('p-out', MarshmallowMath.panFill(num('p-w'),num('p-l'),num('p-h')), MarshmallowMath.renderPan);
+});
+document.getElementById('c-go').addEventListener('click', function(){
+  show('c-out', MarshmallowMath.cutYield(num('c-w'),num('c-l'),num('c-piece')), MarshmallowMath.renderCut);
+});
+</script>
+</body>
+</html>
